@@ -45,8 +45,6 @@ jobs:
         continue-on-error: true
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          browser: all
-          number-of-browsers: 5
 
   aggregate:
     name: Generate report
