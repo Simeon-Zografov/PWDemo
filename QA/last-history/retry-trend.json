@@ -1,0 +1,11 @@
+[
+  {
+    "buildOrder": 2,
+    "reportUrl": "/PWDemo/QA/2/index.html",
+    "data": {
+      "run": 24,
+      "retry": 1
+    },
+    "reportName": "QA #2"
+  }
+]
