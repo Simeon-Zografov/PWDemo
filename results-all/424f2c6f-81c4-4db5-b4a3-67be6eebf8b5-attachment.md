@@ -1,0 +1,136 @@
+# Test info
+
+- Name: Login Suite >> Unsuccessfully login with username: "" and password: "SuperSecretPassword!"
+- Location: /home/runner/work/PWDemo/PWDemo/tests/login.spec.ts:49:9
+
+# Error details
+
+```
+Error: expect(received).toBeTruthy()
+
+Received: false
+    at /home/runner/work/PWDemo/PWDemo/tests/login.spec.ts:61:58
+    at /home/runner/work/PWDemo/PWDemo/tests/login.spec.ts:60:7
+```
+
+# Page snapshot
+
+```yaml
+- text:  Your username is invalid!
+- link "×":
+  - /url: "#"
+- link "Fork me on GitHub":
+  - /url: https://github.com/tourdedave/the-internet
+  - img "Fork me on GitHub"
+- heading "Login Page" [level=2]
+- heading "This is where you can log into the secure area. Enter tomsmith for the username and SuperSecretPassword! for the password. If the information is wrong you should see error messages." [level=4]:
+  - text: This is where you can log into the secure area. Enter
+  - emphasis: tomsmith
+  - text: for the username and
+  - emphasis: SuperSecretPassword!
+  - text: for the password. If the information is wrong you should see error messages.
+- text: Username
+- textbox "Username"
+- text: Password
+- textbox "Password"
+- button " Login"
+- separator
+- text: Powered by
+- link "Elemental Selenium":
+  - /url: http://elementalselenium.com/
+```
+
+# Test source
+
+```ts
+   1 | import { test, expect } from '@playwright/test';
+   2 | import { LoginPage } from './pages/LoginPage';
+   3 | import * as allure from "allure-js-commons";
+   4 | import dotenv from 'dotenv';
+   5 |
+   6 | dotenv.config(); // Load .env variables
+   7 |
+   8 | const username = process.env.USERNAME!;
+   9 | const password = process.env.PASSWORD!;
+  10 |
+  11 | test.describe('Login Suite', () => {
+  12 |
+  13 |   test('User is navigated to the Login page', async ({ page }) => {
+  14 |     allure.feature('Login');
+  15 |     allure.severity('blocker');
+  16 |
+  17 |     const loginPage = new LoginPage(page);
+  18 |     await page.goto('/login');
+  19 |
+  20 |     await test.step('Check the page title', async () => {
+  21 |       expect(await loginPage.isLoginTitleVisible()).toBeTruthy();
+  22 |     });
+  23 |   });
+  24 |
+  25 |   const invalidLoginData = [
+  26 |     {
+  27 |       username: username.slice(0, -1),
+  28 |       password: password,
+  29 |       error: 'Your username is invalid!',
+  30 |     },
+  31 |     {
+  32 |       username: username,
+  33 |       password: password.slice(0, -1),
+  34 |       error: 'Your password is invalid!',
+  35 |     },
+  36 |     {
+  37 |       username: '',
+  38 |       password: password,
+  39 |       error: 'Your username is invalid!',
+  40 |     },
+  41 |     {
+  42 |       username: username,
+  43 |       password: '',
+  44 |       error: 'Your password is invalid!',
+  45 |     },
+  46 |   ];
+  47 |
+  48 |   for (const data of invalidLoginData) {
+  49 |     test(`Unsuccessfully login with username: "${data.username}" and password: "${data.password}"`, async ({ page }) => {
+  50 |       allure.feature('Login');
+  51 |       allure.severity('normal');
+  52 |
+  53 |       const loginPage = new LoginPage(page);
+  54 |       await page.goto('/login');
+  55 |
+  56 |       await loginPage.setUsername(data.username);
+  57 |       await loginPage.setPassword(data.password);
+  58 |       await loginPage.clickLogin();
+  59 |
+  60 |       await test.step('Check for error message', async () => {
+> 61 |         expect(await loginPage.errorMessage.isVisible()).toBeTruthy();
+     |                                                          ^ Error: expect(received).toBeTruthy()
+  62 |       });
+  63 |
+  64 |       await test.step('Check error message text', async () => {
+  65 |         const actualError = await loginPage.getErrorMessageText();
+  66 |         expect(actualError).toContain(data.error);
+  67 |       });
+  68 |     });
+  69 |   }
+  70 |
+  71 |   test('Successful login', async ({ page }) => {
+  72 |     allure.feature('Login');
+  73 |     allure.severity('critical');
+  74 |
+  75 |     const loginPage = new LoginPage(page);
+  76 |     await page.goto('/login');
+  77 |
+  78 |     await loginPage.setUsername(username);
+  79 |     await loginPage.setPassword(password);
+  80 |     await loginPage.clickLogin();
+  81 |
+  82 |     await test.step('The user is logged in', async () => {
+  83 |       const msg = await loginPage.getErrorMessageText();
+  84 |       expect(msg).toContain('You logged into a secure area!');
+  85 |     });
+  86 |   });
+  87 |
+  88 | });
+  89 |
+```
