@@ -1,0 +1,72 @@
+name: Playwright Tests with Allure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment'
+        required: true
+        default: 'QA'
+        type: choice
+        options:
+          - 'QA'
+          - 'UAT'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          USERNAME: ${{ vars.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+      
+      - name: Push results
+        uses: Simeon-Zografov/build-allure-report-action/.github/actions/push-individual-report@main
+        if: always()
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          browser: all
+          number-of-browsers: 5
+
+  aggregate:
+    name: Generate report
+    needs: [ test ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Run report publish action
+        uses: Simeon-Zografov/build-allure-report-action/.github/actions/build-report@main
+        with:
+          branch: gh_pages
+          env_name: ${{ github.event.inputs.environment }}
+          report_id: ${{ github.run_number }}
+          keep_reports: 10
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh_pages
+          publish_dir: gh_pages
+
