@@ -40,7 +40,7 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
       
       - name: Push results
-        uses: Simeon-Zografov/build-allure-report-action/.github/actions/pussh-individual-report@main
+        uses: Simeon-Zografov/build-allure-report-action/.github/actions/push-individual-report@main
         if: always()
         continue-on-error: true
         with:
